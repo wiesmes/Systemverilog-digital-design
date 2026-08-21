@@ -1,33 +1,20 @@
 //Name: Wiesmes Antwi
-//Purpose of Program: 2-to-4 decoder using only NAND gates (gate-level SystemVerilog)
-//*******************************************
+//Purpose: 2-to-4 NAND decoder with enable (active low outputs)
 
-// nand_dec_2_to_1.sv
-// 2-to-4 NAND-based decoder with active-low outputs
-
-`timescale 1ns/1ps
-module nand_dec_2_to_1 (
-    input  wire a,    // MSB
-    input  wire b,    // LSB
-    input  wire en,   // active-high enable
-    output wire d0,   // active-low outputs: d0 corresponds to a=0,b=0
-    output wire d1,   // a=0,b=1
-    output wire d2,   // a=1,b=0
-    output wire d3    // a=1,b=1
+module nand_dec_2_to_4 (  // ← Renamed to match functionality
+  input  A, B, E,        // E = enable (active high)
+  output Y0, Y1, Y2, Y3  // Active low outputs
 );
 
-    // create A' and B' using NAND inverters: x' = nand(x,x)
-    wire na, nb;
-    nand (na, a, a); // na = ~a
-    nand (nb, b, b); // nb = ~b
+  // Local inversions using NAND as NOT
+  wire nA, nB;
+  nand invA(nA, A, A);   // nA = ~A
+  nand invB(nB, B, B);   // nB = ~B
 
-    // For active-low outputs: d0 = ~(en & na & nb)  -> nand(en, na, nb)
-    // d1 = ~(en & na & b)
-    // d2 = ~(en & a  & nb)
-    // d3 = ~(en & a  & b)
-    nand (d0, en, na, nb);
-    nand (d1, en, na, b);
-    nand (d2, en, a,  nb);
-    nand (d3, en, a,  b);
+  // Active low decoded outputs
+  nand y0_gate(Y0, E, nA, nB); // Y0 = ~(E & ~A & ~B)
+  nand y1_gate(Y1, E, nA,  B); // Y1 = ~(E & ~A &  B)
+  nand y2_gate(Y2, E,  A, nB); // Y2 = ~(E &  A & ~B)
+  nand y3_gate(Y3, E,  A,  B); // Y3 = ~(E &  A &  B)
 
 endmodule
